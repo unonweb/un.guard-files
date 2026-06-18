@@ -8,7 +8,6 @@ SCRIPT_PARENT=$(dirname "${SCRIPT_DIR}")
 PATH_CONFIG="${SCRIPT_PARENT}/config.cfg"
 PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 
-LOG_FILE="${SCRIPT_PARENT}/log.txt"
 DEBUG=0
 
 function main {
@@ -57,25 +56,24 @@ function main {
 		local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 		
 		# Gather forensics context
-		local active_users=$(who)
-		
 		# Construct the alert payload
 		alert_msg=""
-		alert_msg+="⚠️ HONEYPOT TRIGGERED ⚠️\n"
+		alert_msg+="⚠️ HONEYPOT TRIGGERED ⚠️\n\n"
 		alert_msg+="Time: ${timestamp}\n"
-		alert_msg+="File Touched: ${triggered}\n"
-		alert_msg+="Action Detected: ${events}\n"
+		alert_msg+="File: ${triggered}\n"
+		alert_msg+="Action: ${events}\n"
 		alert_msg+="----------------------------------------\n"
-		alert_msg+="Current Active Terminal Sessions: ${active_users}\n"
+		alert_msg+="Active Sessions:\n"
+		alert_msg+="$(who)\n"
 
 		# 1. Log locally
-		echo "[${timestamp}] TRIGGERED: ${triggered} | Event: ${events}" >> "${LOG_FILE}"
+		if ((LOG)); then echo "[${timestamp}] TRIGGERED: ${triggered} | Event: ${events}" >> "${LOG_FILE}"; fi
 
 		# 2. Print to stdout (useful if running in foreground/debugging)
 		if ((DEBUG)); then echo "Triggered file: ${triggered}"; fi
 
 		# 3. Send Email Alert
-		echo "${alert_msg}" | mail -s "${MAIL_SUBJECT}" "${MAIL_DST}"
+		echo -e "${alert_msg}" | mail -s "${MAIL_SUBJECT}" "${MAIL_DST}"
 
 	done
 }
