@@ -19,7 +19,7 @@ function main {
   		exit 1
 	fi
 	# CHECK if inotifywait is installed
-	if ! which inotifywait; then
+	if ! which inotifywait > /dev/null; then
 		echo "Error - This script needs inotifywait to run."
 		exit 1
 	fi
