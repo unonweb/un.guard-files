@@ -12,10 +12,16 @@ LOG_FILE="${SCRIPT_PARENT}/log.txt"
 DEBUG=1
 
 function main {
-
+	
+	# CHECK if root
 	if [ "${UID}" -ne 0 ]; then
   		echo "This script must be run as root."
   		exit 1
+	fi
+	# CHECK if inotifywait is installed
+	if ! which inotifywait; then
+		echo "Error - This script needs inotifywait to run."
+		exit 1
 	fi
 
 	# CONFIG & DEFAULTS
