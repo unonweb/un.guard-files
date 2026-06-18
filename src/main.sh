@@ -9,7 +9,7 @@ PATH_CONFIG="${SCRIPT_PARENT}/config.cfg"
 PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 
 LOG_FILE="${SCRIPT_PARENT}/log.txt"
-DEBUG=1
+DEBUG=0
 
 function main {
 	
@@ -35,13 +35,11 @@ function main {
 	# Ensure files exist
 	for file in "${WATCH_FILES[@]}"; do
 		if [ ! -f "${file}" ]; then
-			echo "File does not exist: ${file}"
+			echo "<4>File does not exist: ${file}"
 		else
 			if ((DEBUG)); then echo "Watching file: ${file}"; fi
 		fi
 	done
-
-	echo "Sentinel active. Watching files..."
 
 	# Monitor the files using inotifywait
 	# -m: Monitor continuously
