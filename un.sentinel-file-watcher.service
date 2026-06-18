@@ -1,0 +1,12 @@
+[Unit]
+Description=File-Based Honeypot Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=un.sentinel-file-watcher.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
