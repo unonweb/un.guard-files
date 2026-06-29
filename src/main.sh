@@ -16,6 +16,9 @@ source "${SCRIPT_DIR}/lib/alert.sh"
 
 function main {
 	
+	# Associative array to track the last alert time for each file
+	declare -A LAST_ALERT_TIME
+
 	# CHECK if root
 	if [ "${UID}" -ne 0 ]; then
   		echo "This script must be run as root."
@@ -65,13 +68,26 @@ function main {
 		else
 			triggered="${directory}${filename}"
 		fi
+
+		# COOLDOWN
+    	local current_time=${SECONDS}
+    	local last_time=${LAST_ALERT_TIME["${triggered}"]:-0}
+		# number of seconds since shell invocation
+		# Check if the file was alerted on recently
+		if (( current_time - last_time < COOLDOWN_SECONDS )); then
+			# Optional: Log the suppression locally, but skip the noisy alert
+			log "<5> THROTTLED: Skipping alert for ${triggered} (Cooldown active)"
+			continue
+		fi
+
+		# Update the last alert time for this specific file
+    	LAST_ALERT_TIME["${triggered}"]=${current_time}
 		
 		# Gather forensics context
 		# Construct the alert payload
 		alert_msg+="Time: ${timestamp}\n"
 		alert_msg+="File: ${triggered}\n"
-		alert_msg+="Action: ${events}\n"
-		alert_msg+="----------------------------------------\n"
+		alert_msg+="Action: ${events}\n\n"
 		alert_msg+="Active Sessions:\n"
 		alert_msg+="$(who)\n"
 
