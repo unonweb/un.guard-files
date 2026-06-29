@@ -12,6 +12,7 @@ PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 
 # IMPORTS
 source "${SCRIPT_DIR}/lib/log.sh"
+source "${SCRIPT_DIR}/lib/alert.sh"
 
 function main {
 	
@@ -33,6 +34,11 @@ function main {
 	else
 		log "<4> No config file found at ${PATH_CONFIG}. Using defaults ..."
 		source "${PATH_DEFAULTS}"
+	fi
+
+	if [ ${#WATCH_FILES[@]} -eq 0 ]; then
+    	log "<3> ERROR: WATCH_FILES array is empty."
+    	exit 1
 	fi
 
 	# Ensure files exist
@@ -61,8 +67,6 @@ function main {
 		
 		# Gather forensics context
 		# Construct the alert payload
-		alert_msg=""
-		alert_msg+="HONEYPOT TRIGGERED\n\n"
 		alert_msg+="Time: ${timestamp}\n"
 		alert_msg+="File: ${triggered}\n"
 		alert_msg+="Action: ${events}\n"
@@ -73,13 +77,10 @@ function main {
 		# Log locally
 		log "<4> TRIGGERED: ${triggered} | Event: ${events}"
 
-		# Send Email Alert
-		if (( ALERT_MAIL )); then
-			echo -e "${alert_msg}" | \
-			mail -s "${ALERT_MAIL_SUBJECT}" "${ALERT_MAIL_TO}" 2>/dev/null
-		fi
+		# ALERT
+		alert "${alert_msg}"
 
-	done < <(inotifywait -m -e access -e modify -e attrib "${WATCH_FILES[@]}")
+	done < <(inotifywait -m --format '%w %e %f' -e access -e modify -e attrib "${WATCH_FILES[@]}")
 }
 
 main
