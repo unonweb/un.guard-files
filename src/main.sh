@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE}")"
 SCRIPT_DIR=$(dirname -- "$(readlink -f "${BASH_SOURCE}")")
@@ -10,7 +10,8 @@ APP_NAME="${SCRIPT_PARENT##*/}"
 PATH_CONFIG="${SCRIPT_PARENT}/config.cfg"
 PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 
-DEBUG=0
+# IMPORTS
+source "${SCRIPT_DIR}/lib/log.sh"
 
 function main {
 	
@@ -19,9 +20,10 @@ function main {
   		echo "This script must be run as root."
   		exit 1
 	fi
+
 	# CHECK if inotifywait is installed
 	if ! which inotifywait > /dev/null; then
-		echo "Error - This script needs inotifywait to run."
+		log "<3> This script needs inotifywait to run."
 		exit 1
 	fi
 
@@ -29,16 +31,16 @@ function main {
 	if [[ -r ${PATH_CONFIG} ]]; then
 		source "${PATH_CONFIG}"
 	else
-		echo "<4>WARN: No config file found at ${PATH_CONFIG}. Using defaults ..."
+		log "<4> No config file found at ${PATH_CONFIG}. Using defaults ..."
 		source "${PATH_DEFAULTS}"
 	fi
 
 	# Ensure files exist
 	for file in "${WATCH_FILES[@]}"; do
 		if [ ! -f "${file}" ]; then
-			echo "<4>File does not exist: ${file}"
+			log "<4> File does not exist: ${file}"
 		else
-			if ((DEBUG)); then echo "Watching file: ${file}"; fi
+			log "<6> Watching file: ${file}"
 		fi
 	done
 
@@ -60,7 +62,7 @@ function main {
 		# Gather forensics context
 		# Construct the alert payload
 		alert_msg=""
-		alert_msg+="⚠️ HONEYPOT TRIGGERED ⚠️\n\n"
+		alert_msg+="HONEYPOT TRIGGERED\n\n"
 		alert_msg+="Time: ${timestamp}\n"
 		alert_msg+="File: ${triggered}\n"
 		alert_msg+="Action: ${events}\n"
@@ -68,16 +70,16 @@ function main {
 		alert_msg+="Active Sessions:\n"
 		alert_msg+="$(who)\n"
 
-		# 1. Log locally
-		if ((LOG)); then echo "[${timestamp}] TRIGGERED: ${triggered} | Event: ${events}" >> "${LOG_FILE}"; fi
+		# Log locally
+		log "<4> TRIGGERED: ${triggered} | Event: ${events}"
 
-		# 2. Print to stdout (useful if running in foreground/debugging)
-		if ((DEBUG)); then echo "Triggered file: ${triggered}"; fi
-
-		# 3. Send Email Alert
-		echo -e "${alert_msg}" | mail -s "${MAIL_SUBJECT}" "${MAIL_DST}"
+		# Send Email Alert
+		if (( ALERT_MAIL )); then
+			echo -e "${alert_msg}" | \
+			mail -s "${ALERT_MAIL_SUBJECT}" "${ALERT_MAIL_TO}" 2>/dev/null
+		fi
 
 	done
 }
 
-main ${@}
+main
