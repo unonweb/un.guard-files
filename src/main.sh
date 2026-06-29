@@ -47,7 +47,7 @@ function main {
 	# Monitor the files using inotifywait
 	# -m: Monitor continuously
 	# -e: Listen for specific events (access = read, modify = write, attrib = metadata changes)
-	inotifywait -m -e access -e modify -e attrib "${WATCH_FILES[@]}" | while read -r directory events filename; do
+	while read -r directory events filename; do
 		
 		# Resolve the full path of the triggered file
 		# Note: If watching exact files, inotifywait outputs 'path STATUS' or 'path STATUS filename'
@@ -79,7 +79,7 @@ function main {
 			mail -s "${ALERT_MAIL_SUBJECT}" "${ALERT_MAIL_TO}" 2>/dev/null
 		fi
 
-	done
+	done < <(inotifywait -m -e access -e modify -e attrib "${WATCH_FILES[@]}")
 }
 
 main
