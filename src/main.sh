@@ -44,6 +44,12 @@ function main {
     	exit 1
 	fi
 
+	# MKDIR state
+	if [[ ! -d "${LOG_DIR}" ]]; then
+		log "<5> Creating state dir at: ${LOG_DIR}"
+		mkdir -p "${LOG_DIR}"
+	fi
+
 	# Ensure files exist
 	for file in "${WATCH_FILES[@]}"; do
 		if [ ! -f "${file}" ]; then
