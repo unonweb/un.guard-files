@@ -5,6 +5,8 @@ SCRIPT_DIR=$(dirname -- "$(readlink -f "${BASH_SOURCE}")")
 SCRIPT_NAME=$(basename -- "$(readlink -f "${BASH_SOURCE}")")
 SCRIPT_PARENT=$(dirname "${SCRIPT_DIR}")
 
+APP_NAME="${SCRIPT_PARENT##*/}"
+
 PATH_CONFIG="${SCRIPT_PARENT}/config.cfg"
 PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 
