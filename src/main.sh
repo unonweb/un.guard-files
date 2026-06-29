@@ -50,20 +50,21 @@ function main {
 		fi
 	done
 
-	# Monitor the files using inotifywait
-	# -m: Monitor continuously
-	# -e: Listen for specific events (access = read, modify = write, attrib = metadata changes)
 	while read -r directory events filename; do
 		
+		# Reset alert message for this specific event iteration
+    	local alert_msg="" 
+    	local triggered=""
+		local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+		
+		# Handle file vs directory path resolution safely
 		# Resolve the full path of the triggered file
 		# Note: If watching exact files, inotifywait outputs 'path STATUS' or 'path STATUS filename'
-		local triggered="${directory}${filename}"
-		
-		if [ ! -f "${triggered}" ]; then
+		if [ -z "${filename}" ]; then
 			triggered="${directory}"
+		else
+			triggered="${directory}${filename}"
 		fi
-
-		local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 		
 		# Gather forensics context
 		# Construct the alert payload
@@ -81,6 +82,8 @@ function main {
 		alert "${alert_msg}"
 
 	done < <(inotifywait -m --format '%w %e %f' -e access -e modify -e attrib "${WATCH_FILES[@]}")
+	# -m: Monitor continuously
+	# -e: Listen for specific events (access = read, modify = write, attrib = metadata changes)
 }
 
 main
