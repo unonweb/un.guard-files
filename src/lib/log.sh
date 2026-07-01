@@ -45,6 +45,9 @@ function log {
 			# Replace all newlines with a space
 			message="${message//\\n/ }"
 			msg_only="${msg_only//\\n/ }"
+			# Remove space after "<num> "
+			message="${message/> />}"
+			msg_only="${msg_only/> />}"
 			
 			if (( LOG_TO_CONSOLE_WITH_LVL )); then
 				# Use this when connected to systemd journal
